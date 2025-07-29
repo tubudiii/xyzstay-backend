@@ -53,16 +53,19 @@ class TransactionResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('payment_status')
                     ->options([
-                        'pending' => 'Pending',
-                        'paid' => 'Paid',
+                        'waiting' => 'Waiting',
+                        'approved' => 'Approved',
+                        'canceled' => 'Canceled',
                     ])
                     ->required(),
                 Forms\Components\DatePicker::make('start_date')
                     ->required(),
+                Forms\Components\DatePicker::make('end_date')
+                    ->required(),
                 Forms\Components\TextInput::make('duration')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('total_amount')
+                Forms\Components\TextInput::make('total_price')
                     ->prefix('IDR')
                     ->numeric(),
                 Forms\Components\DatePicker::make('transaction_date')
@@ -85,7 +88,7 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('payment_method'),
                 Tables\Columns\TextColumn::make('payment_status')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('total_amount')
+                Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('transaction_date')

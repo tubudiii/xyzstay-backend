@@ -55,7 +55,7 @@ class BoardingHouseResource extends Resource
                                 Forms\Components\RichEditor::make('description')
                                     ->required()
                                     ->columnSpanFull(),
-                                Forms\Components\TextInput::make('price')
+                                Forms\Components\TextInput::make('price_per_day')
                                     ->required()
                                     ->prefix('IDR')
                                     ->numeric(),
@@ -117,7 +117,7 @@ class BoardingHouseResource extends Resource
                     ->searchable(),
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('price')
+                Tables\Columns\TextColumn::make('price_per_day')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
