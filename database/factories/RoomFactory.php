@@ -12,14 +12,24 @@ class RoomFactory extends Factory
 
     public function definition(): array
     {
+        $roomType = $this->faker->randomElement(['Single', 'Double', 'Suite']);
+
+        // Harga berdasarkan tipe kamar
+        $priceMap = [
+            'Single' => 100000,
+            'Double' => 200000,
+            'Suite' => 500000,
+        ];
+
         return [
-            'boarding_house_id' => BoardingHouse::factory(), // default kalau tidak di-set manual
+            'boarding_house_id' => BoardingHouse::factory(),
             'name' => 'Room ' . $this->faker->unique()->numberBetween(1, 100),
-            'room_type' => $this->faker->randomElement(['Single', 'Double', 'Suite']),
+            'room_type' => $roomType,
             'square_feet' => $this->faker->numberBetween(12, 40),
             'capacity' => $this->faker->numberBetween(1, 4),
-            'price_per_month' => $this->faker->numberBetween(500000, 5000000),
-            'is_available' => $this->faker->boolean(80), // 80% tersedia
+            'price_per_day' => $priceMap[$roomType],
+            'is_available' => $this->faker->boolean(80),
         ];
     }
+
 }

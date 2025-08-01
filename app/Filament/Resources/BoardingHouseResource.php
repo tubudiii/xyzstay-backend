@@ -11,6 +11,7 @@ use Filament\Forms\Set;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -55,10 +56,6 @@ class BoardingHouseResource extends Resource
                                 Forms\Components\RichEditor::make('description')
                                     ->required()
                                     ->columnSpanFull(),
-                                Forms\Components\TextInput::make('price_per_day')
-                                    ->required()
-                                    ->prefix('IDR')
-                                    ->numeric(),
                                 Forms\Components\Textarea::make('address')
                                     ->required()
                                     ->columnSpanFull(),
@@ -82,7 +79,7 @@ class BoardingHouseResource extends Resource
                                             ->required()
                                             ->numeric()
                                             ->maxLength(255),
-                                        Forms\Components\TextInput::make('price_per_month')
+                                        Forms\Components\TextInput::make('price_per_day')
                                             ->required()
                                             ->prefix('IDR')
                                             ->numeric(),
@@ -117,9 +114,23 @@ class BoardingHouseResource extends Resource
                     ->searchable(),
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('price_per_day')
-                    ->numeric()
-                    ->sortable(),
+                // Menampilkan semua jenis room_type dalam satu boarding house
+                Tables\Columns\TextColumn::make('rooms_summary')
+                    ->label('Room Types')
+                    ->getStateUsing(function ($record) {
+                        return $record->rooms->pluck('room_type')->unique()->implode(', ');
+                    }),
+                // Menampilkan rentang harga dari kamar-kamar dalam boarding house
+                Tables\Columns\TextColumn::make('price_range')
+                    ->label('Price per Day')
+                    ->getStateUsing(function ($record) {
+                        $prices = $record->rooms->pluck('price_per_day')->sort()->values();
+                        if ($prices->isEmpty())
+                            return '-';
+                        if ($prices->count() === 1)
+                            return 'Rp ' . number_format($prices->first(), 0, ',', '.');
+                        return 'Rp ' . number_format($prices->first(), 0, ',', '.') . ' - Rp ' . number_format($prices->last(), 0, ',', '.');
+                    }),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()

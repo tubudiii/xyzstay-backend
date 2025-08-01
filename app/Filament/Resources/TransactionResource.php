@@ -5,10 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
+use Auth;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -29,11 +34,25 @@ class TransactionResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('boarding_house_id')
-                    ->relationship('boardinghouse', 'name')
-                    ->required(),
+                    ->label('Boarding House')
+                    ->relationship('boardingHouse', 'name')
+                    ->required()
+                    ->reactive(),
+
                 Forms\Components\Select::make('room_id')
-                    ->relationship('room', 'name')
-                    ->required(),
+                    ->label('Room')
+                    ->options(function (callable $get) {
+                        $boardingHouseId = $get('boarding_house_id');
+
+                        if (!$boardingHouseId)
+                            return [];
+
+                        return \App\Models\Room::where('boarding_house_id', $boardingHouseId)
+                            ->pluck('name', 'id');
+                    })
+                    ->required()
+                    ->searchable(),
+                // ->dependsOn('boarding_house_id'),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -62,9 +81,9 @@ class TransactionResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('end_date')
                     ->required(),
-                Forms\Components\TextInput::make('duration')
-                    ->required()
-                    ->numeric(),
+                // Forms\Components\TextInput::make('duration')
+                //     ->required()
+                //     ->numeric(),
                 Forms\Components\TextInput::make('total_price')
                     ->prefix('IDR')
                     ->numeric(),
@@ -78,6 +97,8 @@ class TransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')
+                    ->weight(FontWeight::Bold)
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('boardingHouse.name')
                     ->sortable(),
@@ -87,6 +108,12 @@ class TransactionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('payment_method'),
                 Tables\Columns\TextColumn::make('payment_status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'waiting' => 'gray',
+                        'approved' => 'info',
+                        'canceled' => 'danger',
+                    })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
@@ -94,26 +121,31 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('transaction_date')
                     ->date()
                     ->sortable(),
-                // Tables\Columns\TextColumn::make('deleted_at')
-                //     ->dateTime()
-                //     ->sortable()
-                //     ->toggleable(isToggledHiddenByDefault: true),
-                // Tables\Columns\TextColumn::make('created_at')
-                //     ->dateTime()
-                //     ->sortable()
-                //     ->toggleable(isToggledHiddenByDefault: true),
-                // Tables\Columns\TextColumn::make('updated_at')
-                //     ->dateTime()
-                //     ->sortable()
-                //     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('payment_status')
+                    ->options([
+                        'waiting' => 'Waiting',
+                        'approved' => 'Approved',
+                        'canceled' => 'Canceled',
+                    ])
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Action::make('approve')
+                    ->label('Approve')
+                    ->color('success')
+                    ->button()
+                    ->requiresConfirmation()
+                    ->action(function (Transaction $transaction) {
+                        Transaction::find($transaction->id)->update(['payment_status' => 'approved']);
+                        Notification::make()
+                            ->success()
+                            ->title('Transaction Approved')
+                            ->body('The transaction has been approved successfully.')
+                            ->icon('heroicon-o-check-circle')
+                            ->send();
+                    })
+                    ->hidden(fn(Transaction $transaction) => $transaction->payment_status !== 'waiting'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -127,6 +159,20 @@ class TransactionResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Auth::user();
+
+        // Super Admin bisa melihat semua data
+        if ($user->hasRole('super_admin')) {
+            return parent::getEloquentQuery();
+        }
+
+        // Admin hanya melihat miliknya sendiri
+        return parent::getEloquentQuery()
+            ->where('user_id', $user->id);
     }
 
     public static function getPages(): array

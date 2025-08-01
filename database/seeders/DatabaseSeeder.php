@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
                             'room_type' => fake()->randomElement(['single', 'double']),
                             'square_feet' => fake()->numberBetween(15, 30),
                             'capacity' => fake()->numberBetween(1, 2),
-                            'price_per_month' => fake()->numberBetween(1000000, 3000000),
+                            // 'price_per_month' => fake()->numberBetween(1000000, 3000000),
                             'is_available' => true,
                         ]);
                     }

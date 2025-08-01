@@ -16,7 +16,7 @@ class Room extends Model
         'room_type',
         'square_feet',
         'capacity',
-        'price_per_month',
+        'price_per_day',
         'is_available',
     ];
 

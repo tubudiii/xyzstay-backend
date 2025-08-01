@@ -43,17 +43,46 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function setBoardingHouseAttribute($value)
-    {
-        $boardingHouse = BoardingHouse::find($value);
-        $totalDays = Carbon::createFromDate($this->attributes['start_date'])->diffInDays($this->attributes['end_date']) + 1;
-        $totalPrice = $boardingHouse->price_per_day * $totalDays;
-        $fee = $totalPrice * 0.1; // Assuming a 10% fee
+    // public function setBoardingHouseAttribute($value)
+    // {
+    //     $boardingHouse = BoardingHouse::find($value);
+    //     $totalDays = Carbon::createFromDate($this->attributes['start_date'])->diffInDays($this->attributes['end_date']) + 1;
+    //     $totalPrice = $boardingHouse->price_per_day * $totalDays;
+    //     $fee = $totalPrice * 0.1; // Assuming a 10% fee
 
-        $this->attributes['boarding_house_id'] = $value;
-        $this->attributes['price_per_day'] = $boardingHouse->price_per_day;
-        $this->attributes['total_days'] = $totalDays;
-        $this->attributes['fee'] = $fee;
-        $this->attributes['total_price'] = $totalPrice;
+    //     $this->attributes['boarding_house_id'] = $value;
+    //     $this->attributes['price_per_day'] = $boardingHouse->price_per_day;
+    //     $this->attributes['total_days'] = $totalDays;
+    //     $this->attributes['fee'] = $fee;
+    //     $this->attributes['total_price'] = $totalPrice;
+    // }
+
+    // EVENT creating
+    protected static function booted(): void
+    {
+        static::creating(function ($transaction) {
+            // Jika belum ada start_date atau end_date, lewati
+            if (!$transaction->start_date || !$transaction->end_date) {
+                return;
+            }
+
+            $totalDays = Carbon::parse($transaction->start_date)
+                ->diffInDays(Carbon::parse($transaction->end_date)) + 1;
+
+            $boardingHouse = BoardingHouse::find($transaction->boarding_house_id);
+            $room = Room::find($transaction->room_id);
+
+
+            if ($room) {
+                $pricePerDay = $room->price_per_day;
+                $totalPrice = $pricePerDay * $totalDays;
+                $fee = $totalPrice * 0.1;
+
+                $transaction->price_per_day = $pricePerDay;
+                $transaction->total_days = $totalDays;
+                $transaction->fee = $fee;
+                $transaction->total_price = $totalPrice;
+            }
+        });
     }
 }
