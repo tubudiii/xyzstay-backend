@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Transaction extends Model
 {
@@ -58,26 +59,48 @@ class Transaction extends Model
     // }
 
     // EVENT creating
+
     protected static function booted(): void
     {
         static::creating(function ($transaction) {
-            // Jika belum ada start_date atau end_date, lewati
+            $user = Auth::user();
+
+            // Generate kode transaksi jika belum ada
+            if (empty($transaction->code)) {
+                $transaction->code = 'XYZ-' . now()->format('Ymd-His') . '-' . strtoupper(uniqid());
+            }
+
+            // Isi name & email dari user yang login jika belum diisi
+            if ($user) {
+                $transaction->user_id = $user->id;
+
+                if (empty($transaction->name)) {
+                    $transaction->name = $user->name;
+                }
+
+                if (empty($transaction->email)) {
+                    $transaction->email = $user->email;
+                }
+            }
+
+            // Pastikan tanggal ada
             if (!$transaction->start_date || !$transaction->end_date) {
                 return;
             }
 
+            // Hitung total hari
             $totalDays = Carbon::parse($transaction->start_date)
                 ->diffInDays(Carbon::parse($transaction->end_date)) + 1;
 
-            $boardingHouse = BoardingHouse::find($transaction->boarding_house_id);
-            $room = Room::find($transaction->room_id);
-
+            // Ambil room berdasarkan ID
+            $room = \App\Models\Room::find($transaction->room_id);
 
             if ($room) {
                 $pricePerDay = $room->price_per_day;
                 $totalPrice = $pricePerDay * $totalDays;
                 $fee = $totalPrice * 0.1;
 
+                // Isi field transaksi berdasarkan room
                 $transaction->price_per_day = $pricePerDay;
                 $transaction->total_days = $totalDays;
                 $transaction->fee = $fee;
@@ -85,4 +108,5 @@ class Transaction extends Model
             }
         });
     }
+
 }

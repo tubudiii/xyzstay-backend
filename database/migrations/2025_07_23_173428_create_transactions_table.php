@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->foreignId('room_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('email');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('price_per_day')->unsigned()->default(0);
