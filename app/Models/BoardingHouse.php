@@ -23,6 +23,10 @@ class BoardingHouse extends Model
         'user_id',
     ];
 
+    protected $casts = [
+        'thumbnail' => 'array',
+    ];
+
     public function getRouteKeyName()
     {
         return 'slug';

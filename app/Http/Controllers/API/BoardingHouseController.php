@@ -11,7 +11,10 @@ class BoardingHouseController extends Controller
 {
     public function index(): JsonResponse
     {
-        $boardingHouses = BoardingHouse::withCount('transactions')->orderBy('transactions_count', 'desc')->paginate();
+        $boardingHouses = BoardingHouse::with(['city', 'category', 'rooms', 'testimonials'])
+            ->withCount('transactions')
+            ->orderBy('transactions_count', 'desc')
+            ->paginate();
 
         return response()->json([
             'success' => true,
@@ -20,12 +23,13 @@ class BoardingHouseController extends Controller
         ]);
     }
 
+
     public function show(BoardingHouse $boardingHouse): JsonResponse
     {
         return response()->json([
             'success' => true,
             'message' => 'Get Detail Boarding House',
-            'data' => $boardingHouse->load(['city', 'category', 'rooms', 'testimonials']), 
+            'data' => $boardingHouse->load(['city', 'category', 'rooms', 'testimonials']),
         ]);
     }
 }

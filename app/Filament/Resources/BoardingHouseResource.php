@@ -36,6 +36,9 @@ class BoardingHouseResource extends Resource
                             ->schema([
                                 Forms\Components\FileUpload::make('thumbnail')
                                     ->required()
+                                    ->multiple()
+                                    ->reorderable()
+                                    ->appendFiles()
                                     ->directory('boarding-houses')
                                     ->image(),
                                 Forms\Components\TextInput::make('name')
