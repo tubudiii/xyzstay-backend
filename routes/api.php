@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\BoardingHouseController;
+use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,11 @@ Route::resource('boarding-house', BoardingHouseController::class)->only('index',
 
 Route::post('transaction/is-available', [TransactionController::class, 'isAvailable'])
     ->middleware('auth:sanctum');
+
+Route::get('boarding-house/by-room/{slug}', [BoardingHouseController::class, 'showByRoomSlug']);
+// routes/api.php
+Route::get('room/{slug}/checkout', [RoomController::class, 'showForCheckout']);
+
 
 Route::resource('transaction', TransactionController::class)
     ->only(['store', 'index', 'show'])

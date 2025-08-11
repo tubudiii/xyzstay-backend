@@ -70,7 +70,11 @@ class BoardingHouseResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('name')
                                             ->required()
+                                            ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state)))
                                             ->maxLength(255),
+                                        Forms\Components\TextInput::make('slug')
+                                            ->required()
+                                            ->disabled(),
                                         Forms\Components\TextInput::make('room_type')
                                             ->required()
                                             ->maxLength(255),
