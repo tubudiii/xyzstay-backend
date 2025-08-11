@@ -133,7 +133,7 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Transaction details',
-            'data' => $transaction->load(['boardingHouse', 'room']),
+            'data' => $transaction->load(['boardingHouse', 'room', 'room.images']),
         ]);
     }
 }
