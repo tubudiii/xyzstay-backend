@@ -14,7 +14,17 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transaction = Transaction::with('boardingHouse', 'room')->whereUserId(auth()->id())->paginate();
+        $transaction = Transaction::with('boardingHouse', 'room', 'room.images')
+            ->whereUserId(auth()->id())
+            ->paginate();
+
+        // Akses data transaksi menggunakan properti 'items'
+        foreach ($transaction->items() as $transactionData) {
+            foreach ($transactionData->room->images as $image) {
+                // Menambahkan URL lengkap gambar
+                $image->image_url = asset('storage/boarding-houses/rooms/' . $image->image);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -22,6 +32,8 @@ class TransactionController extends Controller
             'data' => $transaction,
         ]);
     }
+
+
 
     private function _fullyBookedChecker(Store $request)
     {
@@ -130,10 +142,22 @@ class TransactionController extends Controller
             ], JsonResponse::HTTP_FORBIDDEN);
         }
 
+        // Memuat gambar dengan URL lengkap
+        $transactionData = $transaction->load(['boardingHouse', 'room', 'room.images']);
+
+        // Tambahkan URL penuh untuk gambar
+        foreach ($transactionData->room->images as $image) {
+            $image->image_url = asset('storage/boarding-houses/rooms/' . $image->image);
+        }
+
+        // Kirim data transaksi lengkap dengan gambar
         return response()->json([
             'success' => true,
             'message' => 'Transaction details',
-            'data' => $transaction->load(['boardingHouse', 'room', 'room.images']),
+            'data' => $transactionData,
         ]);
+
     }
+
+
 }
