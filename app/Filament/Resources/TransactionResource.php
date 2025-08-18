@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
+use App\Models\Payment;
 use App\Models\Transaction;
 use Auth;
 use Filament\Forms;
@@ -17,6 +18,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Mail\TransactionStatusChangedMail;
+use Illuminate\Support\Facades\Mail;
 
 class TransactionResource extends Resource
 {
@@ -64,13 +67,13 @@ class TransactionResource extends Resource
                     ->tel()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('payment_method')
-                    ->options([
-                        'down_payment' => 'Down Payment',
-                        'full_payment' => 'Full Payment',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('payment_status')
+                // Forms\Components\Select::make('payment_method')
+                //     ->options([
+                //         'down_payment' => 'Down Payment',
+                //         'full_payment' => 'Full Payment',
+                //     ])
+                //     ->required(),
+                Forms\Components\Select::make('transactions_status')
                     ->options([
                         'waiting' => 'Waiting',
                         'approved' => 'Approved',
@@ -87,8 +90,8 @@ class TransactionResource extends Resource
                 Forms\Components\TextInput::make('total_price')
                     ->prefix('IDR')
                     ->numeric(),
-                Forms\Components\DatePicker::make('transaction_date')
-                    ->required(),
+                // Forms\Components\DatePicker::make('transaction_date')
+                //     ->required(),
             ]);
     }
 
@@ -106,8 +109,8 @@ class TransactionResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('payment_method'),
-                Tables\Columns\TextColumn::make('payment_status')
+                // Tables\Columns\TextColumn::make('payment_method'),
+                Tables\Columns\TextColumn::make('transactions_status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'waiting' => 'gray',
@@ -118,12 +121,12 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('transaction_date')
-                    ->date()
-                    ->sortable(),
+                // Tables\Columns\TextColumn::make('transaction_date')
+                //     ->date()
+                //     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('payment_status')
+                SelectFilter::make('transactions_status') // <-- corrected key
                     ->options([
                         'waiting' => 'Waiting',
                         'approved' => 'Approved',
@@ -137,7 +140,18 @@ class TransactionResource extends Resource
                     ->button()
                     ->requiresConfirmation()
                     ->action(function (Transaction $transaction) {
-                        Transaction::find($transaction->id)->update(['payment_status' => 'approved']);
+                        // Update status transaksi
+                        $transaction->update(['transactions_status' => 'approved']);
+
+                        // Membuat entri di tabel payments
+                        Payment::create([
+                            'transaction_id' => $transaction->id,
+                            'payment_status' => 'pending',  // Status pembayaran awal
+                            'total_price' => $transaction->total_price,  // Mengambil total harga dari transaksi
+                        ]);
+                        // Kirim email ke user
+                        Mail::to($transaction->email)->send(new TransactionStatusChangedMail($transaction));
+                        // Kirim notifikasi
                         Notification::make()
                             ->success()
                             ->title('Transaction Approved')
@@ -145,7 +159,7 @@ class TransactionResource extends Resource
                             ->icon('heroicon-o-check-circle')
                             ->send();
                     })
-                    ->hidden(fn(Transaction $transaction) => $transaction->payment_status !== 'waiting'),
+                    ->hidden(fn(Transaction $transaction) => $transaction->transactions_status !== 'waiting'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -165,15 +179,18 @@ class TransactionResource extends Resource
     {
         $user = Auth::user();
 
-        // Super Admin bisa melihat semua data
+        // Super Admin bisa melihat semua transaksi
         if ($user->hasRole('super_admin')) {
             return parent::getEloquentQuery();
         }
 
-        // Admin hanya melihat miliknya sendiri
+        // Admin melihat transaksi untuk boarding house yang dia buat
         return parent::getEloquentQuery()
-            ->where('user_id', $user->id);
+            ->whereHas('boardingHouse', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
     }
+
 
     public static function getPages(): array
     {

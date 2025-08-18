@@ -18,7 +18,6 @@ class BoardingHouse extends Model
         'city_id',
         'category_id',
         'description',
-        // 'price_per_day',
         'address',
         'user_id',
     ];

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Room;
 use App\Models\BoardingHouse;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Str;
 
 class RoomFactory extends Factory
 {
@@ -24,6 +25,7 @@ class RoomFactory extends Factory
         return [
             'boarding_house_id' => BoardingHouse::factory(),
             'name' => 'Room ' . $this->faker->unique()->numberBetween(1, 100),
+            'slug' => fn(array $attributes) => Str::slug($attributes['name']), // <— otomatis bikin slug
             'room_type' => $roomType,
             'square_feet' => $this->faker->numberBetween(12, 40),
             'capacity' => $this->faker->numberBetween(1, 4),

@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\BoardingHouse;
 use App\Models\Transaction;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -11,6 +12,9 @@ use Number;
 
 class StatsOverview extends BaseWidget
 {
+    use HasWidgetShield;
+
+
     private function getPercentage(int|float $form, int|float $to): float
     {
         $denominator = $to + ($form / 2);
@@ -24,19 +28,20 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
+
         $user = auth()->user();
 
         // Ambil semua ID boarding house milik user
         $boardingHouseIds = BoardingHouse::where('user_id', $user->id)->pluck('id');
 
         // Transaksi bulan ini (yang sudah approved dan milik boarding house user)
-        $newTransactionQuery = Transaction::wherePaymentStatus('approved')
+        $newTransactionQuery = Transaction::where('transactions_status', 'approved')
             ->whereIn('boarding_house_id', $boardingHouseIds)
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year);
 
         // Transaksi bulan lalu (yang sudah approved dan milik boarding house user)
-        $prevTransactionQuery = Transaction::wherePaymentStatus('approved')
+        $prevTransactionQuery = Transaction::where('transactions_status', 'approved')
             ->whereIn('boarding_house_id', $boardingHouseIds)
             ->whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->whereYear('created_at', Carbon::now()->subMonth()->year);

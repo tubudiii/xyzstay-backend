@@ -7,6 +7,7 @@ use Hash;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Auth\Register as AuthRegister;
+use Filament\Forms\Components\Select;
 
 class Register extends AuthRegister
 {
@@ -42,5 +43,6 @@ class Register extends AuthRegister
             'phone_number' => $data['phone_number'],
         ]);
         Auth::login($user);
+
     }
 }

@@ -91,6 +91,11 @@ class UserResource extends Resource
         ];
     }
 
+    public static function afterCreate(User $user)
+    {
+        $user->assignRole('admin');
+    }
+
     public static function getPages(): array
     {
         return [

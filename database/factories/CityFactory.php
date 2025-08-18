@@ -10,21 +10,22 @@ class CityFactory extends Factory
     public function definition(): array
     {
         $baliCities = [
-            'Denpasar',
-            'Buleleng',
-            'Tabanan',
-            'Gianyar',
-            'Bangli',
-            'Karangasem',
             'Badung',
-            'Negara',
-            'Klungkung'
+            'Denpasar',
+            'Bangli',
+            'Buleleng',
+            'Gianyar',
+            'Jembrana',
+            'Karangasem',
+            'Klungkung',
+            'Tabanan',
         ];
 
         $name = $this->faker->unique()->randomElement($baliCities);
 
         return [
-            'image' => $this->faker->imageUrl(640, 480, 'city', true, 'Bali'),
+            // Path image lokal, diasumsikan format jpg dan nama file sama dengan nama city
+            'image' => 'cities/' . $name . '.png',
             'name' => $name,
             'slug' => Str::slug($name),
         ];

@@ -12,11 +12,13 @@ class Testimonial extends Model
 
     protected $fillable = [
         'boarding_house_id',
-        'photo',
+        'user_id',
         'name',
         'content',
         'rating',
     ];
+
+
 
     public function boardingHouse()
     {

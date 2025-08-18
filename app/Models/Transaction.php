@@ -25,10 +25,13 @@ class Transaction extends Model
         'total_days',
         'fee',
         'total_price',
-        'payment_method',
-        'payment_status',
-        'transaction_date',
+        'transactions_status',
     ];
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'transaction_id', 'id');
+    }
 
     public function boardingHouse()
     {
@@ -43,22 +46,6 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    // public function setBoardingHouseAttribute($value)
-    // {
-    //     $boardingHouse = BoardingHouse::find($value);
-    //     $totalDays = Carbon::createFromDate($this->attributes['start_date'])->diffInDays($this->attributes['end_date']) + 1;
-    //     $totalPrice = $boardingHouse->price_per_day * $totalDays;
-    //     $fee = $totalPrice * 0.1; // Assuming a 10% fee
-
-    //     $this->attributes['boarding_house_id'] = $value;
-    //     $this->attributes['price_per_day'] = $boardingHouse->price_per_day;
-    //     $this->attributes['total_days'] = $totalDays;
-    //     $this->attributes['fee'] = $fee;
-    //     $this->attributes['total_price'] = $totalPrice;
-    // }
-
-    // EVENT creating
 
     protected static function booted(): void
     {
@@ -90,7 +77,7 @@ class Transaction extends Model
 
             // Hitung total hari
             $totalDays = Carbon::parse($transaction->start_date)
-                ->diffInDays(Carbon::parse($transaction->end_date)) + 1;
+                ->diffInDays(Carbon::parse($transaction->end_date));
 
             // Ambil room berdasarkan ID
             $room = \App\Models\Room::find($transaction->room_id);
@@ -99,12 +86,13 @@ class Transaction extends Model
                 $pricePerDay = $room->price_per_day;
                 $totalPrice = $pricePerDay * $totalDays;
                 $fee = $totalPrice * 0.1;
+                $grandTotal = $totalPrice + $fee;
 
                 // Isi field transaksi berdasarkan room
                 $transaction->price_per_day = $pricePerDay;
                 $transaction->total_days = $totalDays;
                 $transaction->fee = $fee;
-                $transaction->total_price = $totalPrice;
+                $transaction->total_price = $grandTotal; // sudah termasuk fee
             }
         });
     }

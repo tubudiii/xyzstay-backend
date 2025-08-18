@@ -7,6 +7,7 @@ use App\Http\Requests\Transaction\Store;
 use App\Models\BoardingHouse;
 use App\Models\Room;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
@@ -14,7 +15,13 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transaction = Transaction::with('boardingHouse', 'room', 'room.images')
+        $transaction = Transaction::with(
+            'boardingHouse',
+            'boardingHouse.testimonials', // tambahkan ini
+            'room',
+            'room.images',
+            'payments'
+        )
             ->whereUserId(auth()->id())
             ->paginate();
 
@@ -24,6 +31,7 @@ class TransactionController extends Controller
                 // Menambahkan URL lengkap gambar
                 $image->image_url = asset('storage/boarding-houses/rooms/' . $image->image);
             }
+            // Tidak perlu manipulasi khusus untuk payment, sudah otomatis eager loaded
         }
 
         return response()->json([
@@ -32,8 +40,6 @@ class TransactionController extends Controller
             'data' => $transaction,
         ]);
     }
-
-
 
     private function _fullyBookedChecker(Store $request)
     {
@@ -81,7 +87,7 @@ class TransactionController extends Controller
 
         // Cek jumlah transaksi aktif untuk room yang sama
         $runningTransactionsCount = Transaction::where('room_id', $room->id)
-            ->whereNot('payment_status', 'canceled')
+            ->whereNot('transactions_status', 'canceled')
             ->where(function ($query) use ($request) {
                 $query->whereBetween('start_date', [$request->start_date, $request->end_date])
                     ->orWhereBetween('end_date', [$request->start_date, $request->end_date])
@@ -122,6 +128,7 @@ class TransactionController extends Controller
             'boarding_house_id' => $request->boarding_house_id,
             'room_id' => $request->room_id,
             'user_id' => auth()->id(),
+            // 'transaction_date' => Carbon::now(), // Menambahkan transaction_date
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
         ]);
@@ -129,7 +136,7 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Transaction created successfully.',
-            'data' => $transaction->load(['boardingHouse', 'room']),
+            'data' => $transaction->load(['boardingHouse.testimonials', 'room']),
         ]);
     }
 
@@ -143,8 +150,7 @@ class TransactionController extends Controller
         }
 
         // Memuat gambar dengan URL lengkap
-        $transactionData = $transaction->load(['boardingHouse', 'room', 'room.images']);
-
+        $transactionData = $transaction->load(['boardingHouse.testimonials', 'room', 'room.images']);
         // Tambahkan URL penuh untuk gambar
         foreach ($transactionData->room->images as $image) {
             $image->image_url = asset('storage/boarding-houses/rooms/' . $image->image);

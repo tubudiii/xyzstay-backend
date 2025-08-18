@@ -17,6 +17,10 @@ class Category extends Model
         'slug',
     ];
 
+    protected $casts = [
+        'image' => 'array',
+    ];
+
     public function boardingHouses()
     {
         return $this->hasMany(BoardingHouse::class);

@@ -25,9 +25,7 @@ return new class extends Migration {
             $table->integer('total_days')->unsigned()->default(0);
             $table->integer('fee')->unsigned()->default(0);
             $table->integer('total_price')->unsigned()->default(0);
-            $table->enum('payment_method', ['down_payment', 'full_payment']);
-            $table->enum('payment_status', ['waiting', 'approved', 'canceled'])->default('waiting');
-            $table->date('transaction_date')->nullable();
+            $table->enum('transactions_status', ['waiting', 'approved', 'canceled'])->default('waiting');
             $table->softDeletes();
             $table->timestamps();
         });

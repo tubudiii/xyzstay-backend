@@ -28,7 +28,7 @@ class WaitingTransactions extends BaseWidget
         return $table
             ->query(
                 Transaction::query()
-                    ->where('payment_status', 'waiting')
+                    ->where('transactions_status', 'waiting')
                     ->whereIn('boarding_house_id', $boardingHouseIds) // Filter tambahan
             )
             ->columns([
@@ -42,8 +42,7 @@ class WaitingTransactions extends BaseWidget
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('payment_method'),
-                Tables\Columns\TextColumn::make('payment_status')
+                Tables\Columns\TextColumn::make('transactions_status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'waiting' => 'gray',
@@ -54,9 +53,7 @@ class WaitingTransactions extends BaseWidget
                 Tables\Columns\TextColumn::make('total_price')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('transaction_date')
-                    ->date()
-                    ->sortable(),
+
             ])
             ->actions([
                 Action::make('approve')

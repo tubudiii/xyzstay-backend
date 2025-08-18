@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TestimonialResource\Pages;
 use App\Filament\Resources\TestimonialResource\RelationManagers;
 use App\Models\Testimonial;
+use Auth;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -26,11 +27,6 @@ class TestimonialResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\FileUpload::make('photo')
-                    ->required()
-                    ->image()
-                    ->columnSpan(2)
-                    ->directory('testimonials'),
                 Forms\Components\Select::make('boarding_house_id')
                     ->relationship('boardingHouse', 'name')
                     ->columnSpan(2)
@@ -57,8 +53,6 @@ class TestimonialResource extends Resource
                 Tables\Columns\TextColumn::make('boardingHouse.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\ImageColumn::make('photo')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('content')
@@ -99,6 +93,22 @@ class TestimonialResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Auth::user();
+
+        // Super Admin bisa melihat semua data
+        if ($user->hasRole('super_admin')) {
+            return parent::getEloquentQuery();
+        }
+
+        // Hanya bisa melihat testimonial dari boarding house yang dibuat oleh user yang login
+        return parent::getEloquentQuery()
+            ->whereHas('boardingHouse', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
     }
 
     public static function getPages(): array

@@ -30,7 +30,6 @@ class BoardingHouseFactory extends Factory
             'city_id' => City::factory(), // pastikan kamu punya CityFactory
             'category_id' => Category::factory(), // pastikan kamu punya CategoryFactory
             'description' => $this->faker->paragraph(4),
-            // 'price_per_day' => $this->faker->numberBetween(500000, 3000000),
             'address' => $this->faker->address,
         ];
     }
