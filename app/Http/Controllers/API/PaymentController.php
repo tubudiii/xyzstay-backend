@@ -71,12 +71,14 @@ class PaymentController extends Controller
         \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
 
         // Menyiapkan parameter untuk transaksi Midtrans
+        // Buat order_id unik dengan menambahkan timestamp
+        $orderId = $payment->transaction_id . '-' . now()->format('YmdHis');
         $params = [
             'transaction_details' => [
-                'order_id' => $payment->transaction_id,
+                'order_id' => $orderId,
                 'gross_amount' => $payment->total_price,
             ],
-            'customer_details' => [ // perbaiki di sini
+            'customer_details' => [
                 'name' => auth()->user()->name,
                 'email' => auth()->user()->email,
                 'phone' => auth()->user()->phone,

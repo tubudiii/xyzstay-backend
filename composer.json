@@ -11,9 +11,12 @@
         "filament/filament": "^3.3",
         "filament/widgets": "^3.3",
         "flowframe/laravel-trend": "0.2.0",
+        "guzzlehttp/guzzle": "^7.9",
+        "joaopaulolndev/filament-edit-profile": "^1.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "livewire/livewire": "^3.6",
         "midtrans/midtrans-php": "^2.6",
         "spatie/laravel-permission": "^6.21"
     },

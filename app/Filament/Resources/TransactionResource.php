@@ -65,7 +65,7 @@ class TransactionResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone_number')
                     ->tel()
-                    ->required()
+                    // ->required()
                     ->maxLength(255),
                 // Forms\Components\Select::make('payment_method')
                 //     ->options([
@@ -157,6 +157,23 @@ class TransactionResource extends Resource
                             ->title('Transaction Approved')
                             ->body('The transaction has been approved successfully.')
                             ->icon('heroicon-o-check-circle')
+                            ->send();
+                    })
+                    ->hidden(fn(Transaction $transaction) => $transaction->transactions_status !== 'waiting'),
+                Action::make('cancel')
+                    ->label('Canceled')
+                    ->color('danger')
+                    ->button()
+                    ->requiresConfirmation()
+                    ->action(function (Transaction $transaction) {
+                        $transaction->update(['transactions_status' => 'canceled']);
+                        // Kirim email ke user
+                        Mail::to($transaction->email)->send(new TransactionStatusChangedMail($transaction));
+                        Notification::make()
+                            ->danger()
+                            ->title('Transaction Canceled')
+                            ->body('The transaction has been canceled.')
+                            ->icon('heroicon-o-x-circle')
                             ->send();
                     })
                     ->hidden(fn(Transaction $transaction) => $transaction->transactions_status !== 'waiting'),
