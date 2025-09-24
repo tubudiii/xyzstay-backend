@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# ⬇️ Pastikan vendor ada (karena kita pakai bind mount ./:/var/www)
+if [ ! -f /var/www/vendor/autoload.php ]; then
+  echo "📦 vendor/ tidak ditemukan, menjalankan composer install..."
+  composer install --no-dev --prefer-dist --no-ansi --no-interaction --no-progress --optimize-autoloader
+fi
+
 echo "⏳ Waiting for MySQL to initialize..."
 sleep 10
 
@@ -23,19 +29,13 @@ done
 
 echo "✅ MySQL is ready!"
 
-# echo "🚀 Running migrations and seeders..."
-# php artisan migrate:fresh --seed --force || echo "⚠️ Migration failed, skipping..."
+# Opsional: migrasi/seed kalau dibutuhkan
+# php artisan migrate --force || echo "⚠️ Migration failed, skipping..."
 
-
-# echo "🔐 Generating Shield permissions..."
-# php artisan shield:generate --all || echo "⚠️ Shield generation failed"
-
-
-
-
-echo "⚡ Caching config, route, and view..."
 echo "🔗 Creating storage symlink..."
 php artisan storage:link || echo "⚠️ Storage link failed"
+
+echo "⚡ Caching config, route, and view..."
 php artisan config:cache || echo "⚠️ Config cache failed"
 php artisan route:cache || echo "⚠️ Route cache failed"
 php artisan view:cache || echo "⚠️ View cache failed"
