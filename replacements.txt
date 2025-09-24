@@ -1,0 +1,7 @@
+# Midtrans Server/Client Key (production/sandbox)
+regex:SB-Mid-server-[A-Za-z0-9_-]+==>REDACTED_MIDTRANS_KEY
+regex:SB-Mid-client-[A-Za-z0-9_-]+==>REDACTED_MIDTRANS_KEY
+regex:Mid-server-[A-Za-z0-9_-]+==>REDACTED_MIDTRANS_KEY
+regex:Mid-client-[A-Za-z0-9_-]+==>REDACTED_MIDTRANS_KEY
+# Baris env langsung (kalau pernah ter-commit)
+regex:(MIDTRANS_(SERVER|CLIENT)_KEY\s*=\s*)\S+==>$1
