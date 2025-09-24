@@ -59,7 +59,7 @@ class TestimonialController extends Controller
         // === Call FastAPI untuk retrain model ===
         try {
             $client = new Client();
-            $res = $client->post('http://0.0.0.0:8888/retrain-model', [
+            $res = $client->post('https://xyz-recomender.trisnautama.site/retrain-model', [
                 'timeout' => 3,
             ]);
             \Log::info('FastAPI retrain triggered after testimonial store.', [
@@ -133,7 +133,7 @@ class TestimonialController extends Controller
         // === Call FastAPI retrain setelah update testimonial ===
         try {
             $client = new Client();
-            $res = $client->post('http://0.0.0.0:8888/retrain-model', [
+            $res = $client->post('https://xyz-recomender.trisnautama.site/retrain-model', [
                 'timeout' => 3,
             ]);
             \Log::info('FastAPI retrain triggered after testimonial update.', [
