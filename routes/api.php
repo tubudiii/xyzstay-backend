@@ -6,7 +6,7 @@ use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\TestimonialController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\PaymentController;
-use App\Http\Controllers\Api\CategoriesController;
+use App\Http\Controllers\API\CategoriesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
