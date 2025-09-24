@@ -25,7 +25,7 @@ class BoardingHouseController extends Controller
         }
 
         // Call FastAPI endpoint
-        $response = Http::post("http://recommender_app:8888/recommend", [
+        $response = Http::post("https://xyz-recomender.trisnautama.site/recommend", [
             'user_id' => (string) $userId,
             'ratings' => []
         ]);
