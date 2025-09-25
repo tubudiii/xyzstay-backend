@@ -24,7 +24,6 @@ class BoardingHouseController extends Controller
             ], 400);
         }
 
-        // Call FastAPI endpoint
         $response = Http::post("https://xyz-recomender.trisnautama.site/recommend", [
             'user_id' => (string) $userId,
             'ratings' => []
@@ -46,9 +45,8 @@ class BoardingHouseController extends Controller
             ], 500);
         }
 
-        // Buat map [boarding_house_id => predicted_score]
         $scoreMap = collect($responseData)->mapWithKeys(function ($item) {
-            return [$item['boarding_house_id'] => $item['predicted_score']];
+            return [$item['boarding_house_id'] => (float) $item['predicted_score']];
         });
 
         $recommendedIds = $scoreMap->keys()->toArray();
@@ -60,13 +58,21 @@ class BoardingHouseController extends Controller
             ], 500);
         }
 
-        // Ambil boarding house sesuai urutan rekomendasi
-        $boardingHouses = BoardingHouse::with(['testimonials'])
+        $boardingHouses = BoardingHouse::with([
+            'city',
+            'category',
+            'testimonials',
+            'rooms' => function ($q) {
+                $q->where('is_available', true)   // terima true/1
+                    ->orWhere('is_available', 1)
+                    ->with('images')
+                    ->orderBy('price_per_day', 'asc');
+            },
+        ])
             ->whereIn('id', $recommendedIds)
             ->orderByRaw('FIELD(id, ' . implode(',', $recommendedIds) . ')')
             ->get();
 
-        // Tambahkan predicted_score ke setiap house
         $boardingHousesWithScore = $boardingHouses->map(function ($house) use ($scoreMap) {
             $house->predicted_score = $scoreMap[$house->id] ?? null;
             return $house;
