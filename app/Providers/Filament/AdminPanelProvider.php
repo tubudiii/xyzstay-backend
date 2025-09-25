@@ -29,6 +29,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->authGuard('web')             // tambahkan ini
+            ->userModel(\App\Models\User::class)
             ->login()
             ->registration(\App\Filament\Auth\CustomRegister::class)
             ->colors([
