@@ -97,4 +97,24 @@ class Transaction extends Model
         });
     }
 
+    /**
+     * Scope: limit transactions to those owned by the currently authenticated admin
+     * (through boarding house ownership) unless the user has role super_admin.
+     */
+    public function scopeOwnedByAuth($query)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return $query->whereRaw('1 = 0'); // no auth => return empty
+        }
+
+        if ($user->hasRole('super_admin')) {
+            return $query; // super admin sees all
+        }
+
+        return $query->whereHas('boardingHouse', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
+    }
+
 }
